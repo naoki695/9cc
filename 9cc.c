@@ -164,6 +164,7 @@ Node* new_num(int val) {
 
 Node* expr();
 Node* mul();
+Node* unary();
 Node* primary();
 
 //加減算の構文木：expr = mul ("+" mul | "-" mul)*
@@ -180,18 +181,25 @@ Node* expr() {
     }
 }
 
-//乗除算の構文木：mul = primary ("*" primary | "/" primary)*
+//乗除算の構文木：mul = unary ("*" unary | "/" unary)*
 Node* mul() {
-    Node* node = primary();
+    Node* node = unary();
 
     for(;;) {
         if(consume('*'))
-            node = new_binary(ND_MUL, node, primary());
+            node = new_binary(ND_MUL, node, unary());
         else if(consume('/'))
-            node = new_binary(ND_DIV, node, primary());
+            node = new_binary(ND_DIV, node, unary());
         else
             return node;
     }
+}
+
+//単項演算子の構文木：("+"|"-")? primary
+Node* unary() {
+    if(consume('-'))
+        return new_binary(ND_SUB, new_num(0), primary());
+    return primary();
 }
 
 //優先()の構文木：primary = "(" expr ")" | num
